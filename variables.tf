@@ -11,7 +11,7 @@ variable "name" {
 }
 
 variable "role_name" {
-  description = "A unique name for your Lambda Function"
+  description = "A unique name for your Lambda Function Role"
 }
 
 variable "log_retention_in_days" {
@@ -25,7 +25,7 @@ variable "timeout" {
 }
 
 variable "environment" {
-  description = "A map that defines environment variables for the Lambda function."
+  description = "A map that defines environment variables for the Lambda function"
 
   default = {
     dummy = "_"
@@ -35,6 +35,6 @@ variable "environment" {
 # depends_on workaround
 
 variable "depends_on" {
-  type    = "list"
-  default = []
+  description = "Helper variable to simulate depends_on for terraform modules"
+  default     = []
 }
