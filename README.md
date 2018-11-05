@@ -3,4 +3,8 @@
 
 # AWS Lambda Terraform Module
 
-A helper module to deploy lambda functions in consistent way.
+A helper module to deploy lambda functions in a consistent way.
+
+## Getting Started
+
+The module is automatically published to the Terraform Module Registry. More information about the available inputs, outputs, dependencies and instructions how to use the module can be found at the official page [here](https://registry.terraform.io/modules/opendevsecops/lambda).
