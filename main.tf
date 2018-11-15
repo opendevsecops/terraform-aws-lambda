@@ -20,6 +20,8 @@ locals {
 resource "aws_cloudwatch_log_group" "main" {
   name              = "${local.log_group}"
   retention_in_days = "${local.log_retention_in_days}"
+
+  tags = "${var.tags}"
 }
 
 resource "aws_iam_role" "main" {
@@ -83,4 +85,6 @@ resource "aws_lambda_function" "main" {
   environment {
     variables = "${local.environment}"
   }
+
+  tags = "${var.tags}"
 }

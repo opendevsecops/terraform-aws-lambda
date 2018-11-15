@@ -32,6 +32,11 @@ variable "environment" {
   }
 }
 
+variable "tags" {
+  description = "Tags to associate with resources"
+  default     = {}
+}
+
 # depends_on workaround
 
 variable "depends_on" {
