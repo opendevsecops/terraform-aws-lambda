@@ -3,7 +3,7 @@
 
 # AWS Lambda Terraform Module
 
-A helper module to deploy lambda functions in a consistent way. This module is used extensively throughout other OpenDevSecOps projects.
+A helper module to deploy lambda functions in a consistent way. This module is used extensively throughout other OpenDevSecOps projects. It is fit for purpose outside of OpenDevSecOps too.
 
 ## Getting Started
 
