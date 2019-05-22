@@ -19,6 +19,11 @@ variable "log_retention_in_days" {
   default     = 30
 }
 
+variable "memory_size" {
+  description = "Amount of memory in MB your Lambda Function can use at runtime."
+  default     = 128
+}
+
 variable "timeout" {
   description = "The amount of time your Lambda Function has to run in seconds"
   default     = 3
@@ -30,16 +35,4 @@ variable "environment" {
   default = {
     dummy = "_"
   }
-}
-
-variable "tags" {
-  description = "Tags to associate with resources"
-  default     = {}
-}
-
-# depends_on workaround
-
-variable "depends_on" {
-  description = "Helper variable to simulate depends_on for terraform modules"
-  default     = []
 }

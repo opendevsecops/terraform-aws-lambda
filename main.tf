@@ -9,7 +9,8 @@ locals {
   log_group             = "/aws/lambda/${var.name}"
   log_retention_in_days = "${var.log_retention_in_days}"
 
-  timeout = "${var.timeout}"
+  memory_size = "${var.memory_size}"
+  timeout     = "${var.timeout}"
 
   source_dir  = "${var.source_dir}"
   output_path = "${var.output_path}"
@@ -79,6 +80,7 @@ resource "aws_lambda_function" "main" {
   filename         = "${local.output_path}"
   source_code_hash = "${data.archive_file.main.output_base64sha256}"
   role             = "${aws_iam_role.main.arn}"
+  memory_size      = "${local.memory_size}"
   timeout          = "${local.timeout}"
 
   environment {
