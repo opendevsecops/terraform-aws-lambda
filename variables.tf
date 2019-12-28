@@ -16,7 +16,7 @@ variable "role_name" {
 
 variable "runtime" {
   description = "The runtimes for your Lambda Function."
-  default     = "nodejs12.x"
+  default     = "nodejs10.x"
 }
 
 variable "log_retention_in_days" {
