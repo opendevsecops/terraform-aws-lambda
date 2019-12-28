@@ -6,6 +6,8 @@ locals {
   name      = "${var.name}"
   role_name = "${var.role_name}"
 
+  runtime = "${var.runtime}"
+
   log_group             = "/aws/lambda/${var.name}"
   log_retention_in_days = "${var.log_retention_in_days}"
 
@@ -76,7 +78,7 @@ data "archive_file" "main" {
 resource "aws_lambda_function" "main" {
   function_name    = "${local.name}"
   handler          = "index.handler"
-  runtime          = "nodejs8.10"
+  runtime          = "${local.runtime}"
   filename         = "${local.output_path}"
   source_code_hash = "${data.archive_file.main.output_base64sha256}"
   role             = "${aws_iam_role.main.arn}"

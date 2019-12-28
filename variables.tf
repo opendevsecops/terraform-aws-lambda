@@ -14,6 +14,11 @@ variable "role_name" {
   description = "A unique name for your Lambda Function Role"
 }
 
+variable "runtime" {
+  description = "The runtimes for your Lambda Function."
+  default     = "nodejs12.x"
+}
+
 variable "log_retention_in_days" {
   description = "Specifies the number of days you want to retain log events in lambda function log group"
   default     = 30
