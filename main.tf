@@ -20,7 +20,7 @@ locals {
   source_dir  = var.source_dir
   output_path = var.output_path
 
-  environment = var.environment ? var.environment : { dummy = "_" }
+  environment = var.environment
 
   schedule = var.schedule
 
