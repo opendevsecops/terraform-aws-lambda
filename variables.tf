@@ -19,9 +19,14 @@ variable "runtime" {
   default     = "nodejs10.x"
 }
 
+variable "handler" {
+  description = "The handler for your Lambda Function."
+  default     = "index.handler"
+}
+
 variable "log_retention_in_days" {
   description = "Specifies the number of days you want to retain log events in lambda function log group"
-  default     = 30
+  default     = 90
 }
 
 variable "memory_size" {
@@ -36,8 +41,15 @@ variable "timeout" {
 
 variable "environment" {
   description = "A map that defines environment variables for the Lambda function"
+  type        = map
+}
 
-  default = {
-    dummy = "_"
-  }
+variable "schedule" {
+  description = "A cloud watch execution schedule for the Lambda function"
+  type        = list(object({ name = string, schedule_expression = string, input = string }))
+}
+
+variable "apigw_arn" {
+  description = "The AWS API GW arn which executes this Lambda function"
+  type        = string
 }
