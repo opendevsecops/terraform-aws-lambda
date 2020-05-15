@@ -128,7 +128,7 @@ resource "aws_lambda_permission" "schedule" {
 }
 
 resource "aws_lambda_permission" "apigw" {
-  count         = local.apigw_arn ? 1 : 0
+  count         = local.apigw_arn == "" ? 0 : 1
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
   principal     = "apigateway.amazonaws.com"
