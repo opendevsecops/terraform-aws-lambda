@@ -3,8 +3,79 @@
 
 # AWS Lambda Terraform Module
 
-A helper module to deploy lambda functions in a consistent way. This module is used extensively throughout other OpenDevSecOps projects. It is fit for purpose outside of OpenDevSecOps too.
+A helper module to deploy lambda functions in a quick and consistent fashion. The module will take care of a lot of boilerplate code such as creating roles, setting up the correct permissions for CloudWatch, configure log retention windows, setup CloudWatch triggers, correct assign AWS API Gateway permissions and more.
+
+This module is used extensively throughout other OpenDevSecOps projects.
 
 ## Getting Started
 
-The module is automatically published to the Terraform Module Registry. More information about the available inputs, outputs, dependencies and instructions how to use the module can be found at the official page [here](https://registry.terraform.io/modules/opendevsecops/lambda).
+The module is automatically published to the Terraform Module Registry. More information about the available inputs, outputs, dependencies, and instructions on how to use the module can be found at the official page [here](https://registry.terraform.io/modules/opendevsecops/lambda).
+
+The following example can be used as starting point:
+
+```terraform
+module "acme_lambda" {
+  source  = "opendevsecops/lambda/aws"
+  
+  version = "1.0.0"
+  runtime = "nodejs10.x"
+  
+  source_dir  = "../src/acme"
+  output_path = "../build/acme.zip"
+
+  name      = "acme_agent"
+  role_name = "acme_agent_role"
+
+  log_retention_in_days = 90
+  timeout = 300
+
+  environment {
+    ACME_KEY_ID = data.aws_secretsmanager_secret.acme.id
+  }
+
+  schedule = [
+    {
+      name                = "RunDaily"
+      schedule_expression = "rate(daily)"
+      input = <<EOF
+{
+  "op": "runSchedule",
+  "params": {
+    "schedule": "daily"
+  }
+}
+EOF
+    }
+  ]
+
+  tags = local.tags
+
+  module_depends_on = [
+      aws_secretsmanager_secret.acme
+  ]
+}
+```
+
+You can setup additional permissions using a custom role policy like this:
+
+```terraform
+resource "aws_iam_role_policy" "acme_agent_role_policy" {
+  name = "policy"
+  role = module.acme_lambda.role_name
+
+  policy = <<EOF
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": "secretsmanager:GetSecretValue",
+			"Resource": "${data.aws_secretsmanager_secret.acme.arn}"
+		}
+	]
+}
+EOF
+}
+```
+
+Refer to the module registry [page](https://registry.terraform.io/modules/opendevsecops/lambda) for additional information on optional inputs and configuration.
