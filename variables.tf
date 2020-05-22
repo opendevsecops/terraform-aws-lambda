@@ -1,20 +1,10 @@
-variable "source_dir" {
-  description = "The function folder to be archived"
-  type        = string
-}
-
-variable "output_path" {
-  description = "The output of the archive file"
-  type        = string
-}
-
 variable "name" {
-  description = "A unique name for your Lambda Function"
+  description = "A unique name for your Lambda Function."
   type        = string
 }
 
 variable "role_name" {
-  description = "A unique name for your Lambda Function Role"
+  description = "A unique name for your Lambda Function Role."
   type        = string
 }
 
@@ -31,7 +21,7 @@ variable "handler" {
 }
 
 variable "log_retention_in_days" {
-  description = "Specifies the number of days you want to retain log events in lambda function log group"
+  description = "Specifies the number of days you want to retain log events in lambda function log group."
   type        = number
   default     = 90
 }
@@ -43,25 +33,52 @@ variable "memory_size" {
 }
 
 variable "timeout" {
-  description = "The amount of time your Lambda Function has to run in seconds"
+  description = "The amount of time your Lambda Function has to run in seconds."
   type        = number
   default     = 3
 }
 
 variable "environment" {
-  description = "A map that defines environment variables for the Lambda function"
+  description = "A map that defines environment variables for the Lambda function."
   type        = map
   default     = { dummy = "_" }
 }
 
+variable "layers" {
+  description = "List of Lambda Layer Version ARNs (maximum of 5) to attach to your Lambda Function."
+  type        = list(string)
+  default     = []
+}
 variable "schedule" {
-  description = "A cloud watch execution schedule for the Lambda function"
+  description = "A cloud watch execution schedule for the Lambda function."
   type        = list(object({ name = string, schedule_expression = string, input = string }))
   default     = []
 }
 
-variable "apigw_arn" {
-  description = "The AWS API GW arn which executes this Lambda function"
+variable "apigws" {
+  description = "The AWS API GW ARNs which executes this Lambda function."
+  type        = list(string)
+  default     = []
+}
+
+variable "source_dir" {
+  description = "The function folder to be archived."
+  type        = string
+}
+
+variable "output_dir" {
+  description = "The function folder for building purposes."
+  type        = string
+}
+
+variable "builder_command" {
+  description = "Builder command."
+  type        = string
+  default     = ""
+}
+
+variable "builder_container" {
+  description = "Builder container."
   type        = string
   default     = ""
 }

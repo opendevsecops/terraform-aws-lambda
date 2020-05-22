@@ -17,14 +17,19 @@ locals {
   memory_size = var.memory_size
   timeout     = var.timeout
 
-  source_dir  = var.source_dir
-  output_path = var.output_path
-
   environment = var.environment
+
+  layers = var.layers
 
   schedule = var.schedule
 
-  apigw_arn = var.apigw_arn
+  apigws = var.apigws
+
+  source_dir = var.source_dir
+  output_dir = var.output_dir
+
+  builder_command   = var.builder_command
+  builder_container = var.builder_container
 
   tags = var.tags
 }
@@ -80,27 +85,43 @@ EOF
 
 }
 
-data "archive_file" "main" {
-  type        = "zip"
-  source_dir  = local.source_dir
-  output_path = local.output_path
+module "lambda_function_archive_builder" {
+  source  = "opendevsecops/archive-builder/local"
+  version = "1.0.0"
+
+  name   = local.name
+  prefix = "lambda-function-"
+
+  source_dir = local.source_dir
+  output_dir = local.output_dir
+
+  command   = local.builder_command
+  container = local.builder_container
+
+  tags = local.tags
 }
 
 resource "aws_lambda_function" "main" {
-  function_name    = local.name
-  handler          = local.handler
-  runtime          = local.runtime
-  filename         = local.output_path
-  source_code_hash = data.archive_file.main.output_base64sha256
-  role             = aws_iam_role.main.arn
-  memory_size      = local.memory_size
-  timeout          = local.timeout
+  filename         = module.lambda_function_archive_builder.output_file
+  source_code_hash = module.lambda_function_archive_builder.output_file_hash
+
+  function_name = local.name
+  handler       = local.handler
+  runtime       = local.runtime
+  role          = aws_iam_role.main.arn
+  memory_size   = local.memory_size
+  timeout       = local.timeout
+  layers        = local.layers
 
   environment {
     variables = local.environment
   }
 
   tags = local.tags
+
+  depends_on = [
+    module.lambda_function_archive_builder
+  ]
 }
 
 resource "aws_cloudwatch_event_rule" "schedule" {
@@ -117,6 +138,10 @@ resource "aws_cloudwatch_event_target" "schedule" {
   target_id = local.schedule[count.index].name
   arn       = aws_lambda_function.main.arn
   input     = local.schedule[count.index].input
+
+  depends_on = [
+    aws_cloudwatch_event_rule.schedule
+  ]
 }
 
 resource "aws_lambda_permission" "schedule" {
@@ -128,9 +153,9 @@ resource "aws_lambda_permission" "schedule" {
 }
 
 resource "aws_lambda_permission" "apigw" {
-  count         = local.apigw_arn == "" ? 0 : 1
+  count         = length(local.apigws)
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
   principal     = "apigateway.amazonaws.com"
-  source_arn    = local.apigw_arn
+  source_arn    = local.apigws[count.index]
 }
