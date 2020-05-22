@@ -5,7 +5,7 @@
 
 A helper module to deploy lambda functions in a quick and consistent fashion. The module will take care of a lot of boilerplate code such as creating roles, setting up the correct permissions for CloudWatch, configure log retention windows, setup CloudWatch triggers, correct assign AWS API Gateway permissions and more.
 
-This module is used extensively throughout other OpenDevSecOps projects as well as secapps.com.
+This module is used extensively throughout other OpenDevSecOps projects as well as [secapps.com](secapps.com).
 
 ## Getting Started
 
