@@ -65,14 +65,14 @@ resource "aws_iam_role_policy" "acme_agent_role_policy" {
 
   policy = <<EOF
 {
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Effect": "Allow",
-			"Action": "secretsmanager:GetSecretValue",
-			"Resource": "${data.aws_secretsmanager_secret.acme.arn}"
-		}
-	]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "${data.aws_secretsmanager_secret.acme.arn}"
+    }
+  ]
 }
 EOF
 }
