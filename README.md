@@ -20,7 +20,7 @@ module "acme_lambda" {
 
   runtime = "nodejs10.x"
 
-  source_dir  = "../src/"
+  source_dir = "../src/"
   output_dir = "../build/"
 
   name      = "acme_agent"
