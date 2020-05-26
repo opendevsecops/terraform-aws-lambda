@@ -27,9 +27,9 @@ module "acme_lambda" {
   role_name = "acme_agent_role"
 
   log_retention_in_days = 90
-  timeout = 300
+  timeout               = 300
 
-  environment {
+  environment = {
     ACME_KEY_ID = data.aws_secretsmanager_secret.acme.id
   }
 
