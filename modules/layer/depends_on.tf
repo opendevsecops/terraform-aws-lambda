@@ -7,7 +7,7 @@ variable "module_depends_on" {
 }
 
 output "module_depends_on" {
-  value = "${var.module_depends_on}"
+  value = var.module_depends_on
 }
 
 resource "null_resource" "module_depends_on" {

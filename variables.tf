@@ -55,8 +55,8 @@ variable "schedule" {
   default     = []
 }
 
-variable "apigws" {
-  description = "The AWS API GW ARNs which executes this Lambda function."
+variable "apigateway_execution_arns" {
+  description = "The AWS API GW Execution ARNs which call this Lambda function."
   type        = list(string)
   default     = []
 }

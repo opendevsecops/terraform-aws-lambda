@@ -23,7 +23,7 @@ locals {
 
   schedule = var.schedule
 
-  apigws = var.apigws
+  apigateway_execution_arns = var.apigateway_execution_arns
 
   source_dir = var.source_dir
   output_dir = var.output_dir
@@ -153,9 +153,9 @@ resource "aws_lambda_permission" "schedule" {
 }
 
 resource "aws_lambda_permission" "apigw" {
-  count         = length(local.apigws)
+  count         = length(local.apigateway_execution_arns)
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
   principal     = "apigateway.amazonaws.com"
-  source_arn    = local.apigws[count.index]
+  source_arn    = "${local.apigateway_execution_arns[count.index]}/*/*/*"
 }
