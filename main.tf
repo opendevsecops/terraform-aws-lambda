@@ -25,6 +25,8 @@ locals {
 
   apigateway_execution_arns = var.apigateway_execution_arns
 
+  role_policy = var.role_policy
+
   source_dir = var.source_dir
   output_dir = var.output_dir
 
@@ -83,6 +85,14 @@ resource "aws_iam_role_policy" "main_policy" {
 }
 EOF
 
+}
+
+resource "aws_iam_role_policy" "supplicant_policy" {
+  count = local.role_policy == "" ? 0 : 1
+
+  role = aws_iam_role.main.name
+
+  policy = local.role_policy
 }
 
 module "lambda_function_archive_builder" {

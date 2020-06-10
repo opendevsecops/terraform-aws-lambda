@@ -61,6 +61,12 @@ variable "apigateway_execution_arns" {
   default     = []
 }
 
+variable "role_policy" {
+  description = "The policy for the Lambda role."
+  type        = string
+  default     = ""
+}
+
 variable "source_dir" {
   description = "The function folder to be archived."
   type        = string
