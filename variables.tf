@@ -61,6 +61,12 @@ variable "apigateway_execution_arns" {
   default     = []
 }
 
+variable "sns_topic_arns" {
+  description = "The SNS Topic ARNs which subscribe to this Lambda function."
+  type        = list(string)
+  default     = []
+}
+
 variable "role_policy" {
   description = "The policy for the Lambda role."
   type        = string

@@ -24,6 +24,8 @@ locals {
   schedule = var.schedule
 
   apigateway_execution_arns = var.apigateway_execution_arns
+  
+  sns_topic_arns = var.sns_topic_arns
 
   role_policy = var.role_policy
 
@@ -168,4 +170,13 @@ resource "aws_lambda_permission" "apigw" {
   function_name = aws_lambda_function.main.arn
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${local.apigateway_execution_arns[count.index]}/*/*/*"
+}
+
+resource "aws_lambda_permission" "sns" {
+  count         = length(local.sns_topic_arns)
+  statement_id  = "AllowSNSInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.main.arn
+  principal     = "sns.amazonaws.com"
+  source_arn    = local.sns_topic_arns[count.index]
 }
