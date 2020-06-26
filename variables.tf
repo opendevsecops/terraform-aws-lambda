@@ -61,7 +61,7 @@ variable "apigateway_execution_arns" {
   default     = []
 }
 
-variable "sns_topic_arns" {
+variable "subscribed_sns_topic_arns" {
   description = "The SNS Topic ARNs which subscribe to this Lambda function."
   type        = list(string)
   default     = []

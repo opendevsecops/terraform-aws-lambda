@@ -25,7 +25,7 @@ locals {
 
   apigateway_execution_arns = var.apigateway_execution_arns
   
-  sns_topic_arns = var.sns_topic_arns
+  subscribed_sns_topic_arns = var.subscribed_sns_topic_arns
 
   role_policy = var.role_policy
 
@@ -138,6 +138,7 @@ resource "aws_lambda_function" "main" {
 
 resource "aws_cloudwatch_event_rule" "schedule" {
   count               = length(local.schedule)
+
   name                = local.schedule[count.index].name
   schedule_expression = local.schedule[count.index].schedule_expression
 
@@ -146,6 +147,7 @@ resource "aws_cloudwatch_event_rule" "schedule" {
 
 resource "aws_cloudwatch_event_target" "schedule" {
   count     = length(local.schedule)
+
   rule      = local.schedule[count.index].name
   target_id = local.schedule[count.index].name
   arn       = aws_lambda_function.main.arn
@@ -158,6 +160,7 @@ resource "aws_cloudwatch_event_target" "schedule" {
 
 resource "aws_lambda_permission" "schedule" {
   count         = length(local.schedule)
+
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
   principal     = "events.amazonaws.com"
@@ -166,6 +169,7 @@ resource "aws_lambda_permission" "schedule" {
 
 resource "aws_lambda_permission" "apigw" {
   count         = length(local.apigateway_execution_arns)
+
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
   principal     = "apigateway.amazonaws.com"
@@ -173,10 +177,23 @@ resource "aws_lambda_permission" "apigw" {
 }
 
 resource "aws_lambda_permission" "sns" {
-  count         = length(local.sns_topic_arns)
+  count         = length(local.subscribed_sns_topic_arns)
+
   statement_id  = "AllowSNSInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
   principal     = "sns.amazonaws.com"
-  source_arn    = local.sns_topic_arns[count.index]
+  source_arn    = local.subscribed_sns_topic_arns[count.index]
+}
+
+resource "aws_sns_topic_subscription" "sns" {
+  count     = length(local.subscribed_sns_topic_arns)
+
+  topic_arn = local.subscribed_sns_topic_arns[count.index]
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.main.arn
+
+  depends_on = [
+    aws_lambda_permission.sns
+  ]
 }
