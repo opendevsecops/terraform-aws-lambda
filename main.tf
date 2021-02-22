@@ -1,8 +1,6 @@
-data "aws_region" "current" {
-}
-
-data "aws_caller_identity" "current" {
-}
+#
+# LOCALS
+#
 
 locals {
   name      = var.name
@@ -24,8 +22,10 @@ locals {
   schedule = var.schedule
 
   apigateway_execution_arns = var.apigateway_execution_arns
-  
+
   subscribed_sns_topic_arns = var.subscribed_sns_topic_arns
+
+  subscribed_sqs_queue_arns = var.subscribed_sqs_queue_arns
 
   role_policy = var.role_policy
 
@@ -38,6 +38,16 @@ locals {
   tags = var.tags
 }
 
+#
+# DATA
+#
+
+data "aws_region" "current" {
+}
+
+data "aws_caller_identity" "current" {
+}
+
 resource "aws_cloudwatch_log_group" "main" {
   name              = local.log_group
   retention_in_days = local.log_retention_in_days
@@ -45,24 +55,23 @@ resource "aws_cloudwatch_log_group" "main" {
   tags = local.tags
 }
 
+#
+# FUNCTION ROLE AND POLICY
+#
+
 resource "aws_iam_role" "main" {
   name = local.role_name
 
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = {
+      Effect = "Allow",
+      Action = "sts:AssumeRole",
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
     }
-  ]
-}
-EOF
-
+  })
 }
 
 resource "aws_iam_role_policy" "main_policy" {
@@ -97,6 +106,10 @@ resource "aws_iam_role_policy" "supplicant_policy" {
   policy = local.role_policy
 }
 
+#
+# LAMBDA FUNCTION ARCHIVE
+#
+
 module "lambda_function_archive_builder" {
   source  = "opendevsecops/archive-builder/local"
   version = "1.0.0"
@@ -112,6 +125,10 @@ module "lambda_function_archive_builder" {
 
   tags = local.tags
 }
+
+#
+# LAMBDA FUNCTION DEFINITION
+#
 
 resource "aws_lambda_function" "main" {
   filename         = module.lambda_function_archive_builder.output_file
@@ -136,8 +153,12 @@ resource "aws_lambda_function" "main" {
   ]
 }
 
+#
+# CLOUDWATCH SCHEDULE
+#
+
 resource "aws_cloudwatch_event_rule" "schedule" {
-  count               = length(local.schedule)
+  count = length(local.schedule)
 
   name                = local.schedule[count.index].name
   schedule_expression = local.schedule[count.index].schedule_expression
@@ -146,7 +167,7 @@ resource "aws_cloudwatch_event_rule" "schedule" {
 }
 
 resource "aws_cloudwatch_event_target" "schedule" {
-  count     = length(local.schedule)
+  count = length(local.schedule)
 
   rule      = local.schedule[count.index].name
   target_id = local.schedule[count.index].name
@@ -159,16 +180,24 @@ resource "aws_cloudwatch_event_target" "schedule" {
 }
 
 resource "aws_lambda_permission" "schedule" {
-  count         = length(local.schedule)
+  count = length(local.schedule)
 
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.schedule[count.index].arn
+
+  depends_on = [
+    aws_cloudwatch_event_target.schedule
+  ]
 }
 
+#
+# APIGW
+#
+
 resource "aws_lambda_permission" "apigw" {
-  count         = length(local.apigateway_execution_arns)
+  count = length(local.apigateway_execution_arns)
 
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.main.arn
@@ -176,8 +205,12 @@ resource "aws_lambda_permission" "apigw" {
   source_arn    = "${local.apigateway_execution_arns[count.index]}/*/*/*"
 }
 
+#
+# SNS
+#
+
 resource "aws_lambda_permission" "sns" {
-  count         = length(local.subscribed_sns_topic_arns)
+  count = length(local.subscribed_sns_topic_arns)
 
   statement_id  = "AllowSNSInvoke"
   action        = "lambda:InvokeFunction"
@@ -187,7 +220,7 @@ resource "aws_lambda_permission" "sns" {
 }
 
 resource "aws_sns_topic_subscription" "sns" {
-  count     = length(local.subscribed_sns_topic_arns)
+  count = length(local.subscribed_sns_topic_arns)
 
   topic_arn = local.subscribed_sns_topic_arns[count.index]
   protocol  = "lambda"
@@ -195,5 +228,50 @@ resource "aws_sns_topic_subscription" "sns" {
 
   depends_on = [
     aws_lambda_permission.sns
+  ]
+}
+
+#
+# SQS
+#
+
+resource "aws_iam_role_policy" "sqs_policy" {
+  count = length(local.subscribed_sqs_queue_arns) > 0 ? 1 : 0
+
+  role = aws_iam_role.main.name
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "sqs:SendMessage",
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes",
+          "sqs:ChangeMessageVisibility"
+        ],
+        Resource = local.subscribed_sqs_queue_arns
+      },
+      {
+        Effect = "Allow",
+        Action = [
+          "sqs:ListQueues"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_lambda_event_source_mapping" "sqs" {
+  count = length(local.subscribed_sqs_queue_arns)
+
+  event_source_arn = local.subscribed_sqs_queue_arns[count.index]
+  function_name    = aws_lambda_function.main.arn
+
+  depends_on = [
+    aws_iam_role_policy.sqs_policy
   ]
 }

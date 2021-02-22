@@ -67,6 +67,12 @@ variable "subscribed_sns_topic_arns" {
   default     = []
 }
 
+variable "subscribed_sqs_queue_arns" {
+  description = "The SQS Queue ARNs which subscribe to this Lambda function."
+  type        = list(string)
+  default     = []
+}
+
 variable "role_policy" {
   description = "The policy for the Lambda role."
   type        = string
