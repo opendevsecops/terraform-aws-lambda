@@ -35,6 +35,10 @@ locals {
   builder_command   = var.builder_command
   builder_container = var.builder_container
 
+  monitor_errors = var.monitor_errors
+
+  on_error_sns_arn = var.on_error_sns_arn
+
   tags = var.tags
 }
 
@@ -274,4 +278,26 @@ resource "aws_lambda_event_source_mapping" "sqs" {
   depends_on = [
     aws_iam_role_policy.sqs_policy
   ]
+}
+
+resource "aws_cloudwatch_metric_alarm" "error" {
+  count = local.monitor_errors || local.on_error_sns_arn != "" ? 1 : 0
+
+  alarm_name          = "lambda-error-${local.name}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "1"
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = "60"
+  statistic           = "Sum"
+  threshold           = "1"
+  alarm_description   = "${local.name} Lambda Error Monitor"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    FunctionName = "${local.name}"
+    Resource     = "${local.name}"
+  }
+
+  alarm_actions = local.on_error_sns_arn != "" ? [local.on_error_sns_arn] : null
 }

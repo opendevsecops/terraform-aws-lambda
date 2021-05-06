@@ -100,3 +100,15 @@ variable "builder_container" {
   type        = string
   default     = ""
 }
+
+variable "monitor_errors" {
+  description = "Create a dedicated cloudwatch alarm to monitor for errors."
+  type        = string
+  default     = false
+}
+
+variable "on_error_sns_arn" {
+  description = ""
+  type        = string
+  default     = ""
+}
